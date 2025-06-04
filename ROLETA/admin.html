@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Administração da Roleta</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 5px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 5px 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
+     /* Responsividade para telas pequenas (celulares) */
+    @media (max-width: 480px) {
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+
+      input[type="text"], input[type="number"], button {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead tr {
+        display: none;
+      }
+
+      tbody tr {
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 6px;
+      }
+
+      tbody td {
+        border: none;
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+      }
+
+      tbody td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-left: 10px;
+        font-weight: bold;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Administração da Roleta</h1>
+  <button onclick="location.href='roleta.html'" style="margin-bottom: 20px;" position="bottom-left">Voltar para a Roleta</button>
+  <form id="addPrizeForm">
+    <input type="text" id="prizeName" placeholder="Nome do prêmio" required>
+    <input type="number" id="prizeQuantity" placeholder="Quantidade" min="1" required>
+    <button type="submit">Adicionar Prêmio</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Quantidade</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="prizeTableBody"></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById("addPrizeForm");
+    const nameInput = document.getElementById("prizeName");
+    const quantityInput = document.getElementById("prizeQuantity");
+    const tableBody = document.getElementById("prizeTableBody");
+
+    let prizes = JSON.parse(localStorage.getItem("prizes")) || [];
+
+    function savePrizes() {
+      localStorage.setItem("prizes", JSON.stringify(prizes));
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = "";
+      prizes.forEach((prize, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="text" value="${prize.name}" onchange="updateName(${index}, this.value)"></td>
+          <td><input type="number" min="0" value="${prize.quantity}" onchange="updateQuantity(${index}, this.value)"></td>
+          <td><button onclick="removePrize(${index})">Remover</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    window.updateName = (index, newName) => {
+      prizes[index].name = newName;
+      savePrizes();
+    };
+
+    window.updateQuantity = (index, newQuantity) => {
+      prizes[index].quantity = parseInt(newQuantity, 10);
+      savePrizes();
+    };
+
+    window.removePrize = (index) => {
+      prizes.splice(index, 1);
+      savePrizes();
+      renderTable();
+    };
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const quantity = parseInt(quantityInput.value, 10);
+      if (name && quantity > 0) {
+        prizes.push({ name, quantity });
+        savePrizes();
+        renderTable();
+        nameInput.value = "";
+        quantityInput.value = "";
+      }
+    });
+
+    renderTable();
+  </script>
+</body>
+</html>
